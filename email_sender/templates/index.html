@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bulk Email Sender</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f8f9fa;
+            padding: 20px;
+        }
+        .container {
+            max-width: 500px;
+            margin: 0 auto;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            background-color: white;
+        }
+        h2 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 20px;
+        }
+        input[type="text"], input[type="file"], textarea {
+            width: 95%;
+            padding: 12px;
+            margin: 10px 0;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            transition: border-color 0.3s;
+        }
+        input[type="text"]:focus, textarea:focus {
+            border-color: #ff9800;
+            outline: none;
+            box-shadow: 0 0 5px rgba(255, 152, 0, 0.5);
+        }
+        input[type="submit"] {
+            background-color: #ff9800;
+            color: white;
+            border: none;
+            padding: 12px;
+            cursor: pointer;
+            border-radius: 4px;
+            font-size: 16px;
+            font-weight: bold;
+            transition: background-color 0.3s, transform 0.2s;
+        }
+        input[type="submit"]:hover {
+            background-color: #e68a00;
+            transform: translateY(-1px);
+        }
+        .alert {
+            padding: 10px;
+            margin: 10px 0;
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+            border-radius: 5px;
+            display: none; /* Initially hidden */
+        }
+        #successCount, #failureCount {
+            font-weight: bold;
+            margin-top: 10px;
+            color: #333;
+        }
+        @media (max-width: 600px) {
+            .container {
+                padding: 15px;
+                margin: 0 10px;
+            }
+            input[type="submit"] {
+                font-size: 14px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Bulk Email Sender</h2>
+        
+        <div id="message" class="alert"></div>
+        <div id="successCount">Emails sent: 0</div>
+        <div id="failureCount">Emails failed: 0</div>
+        
+        <form id="emailForm" enctype="multipart/form-data">
+            <input type="text" name="sender_email" placeholder="Sender Email" required>
+            <input type="text" name="sender_password" placeholder="Sender Password" required>
+            <input type="text" name="subject" placeholder="Email Subject" required>
+            <textarea name="body" rows="5" placeholder="Email Body (HTML format)" required></textarea>
+            <input type="file" name="file" accept=".xlsx" required>
+            <input type="submit" value="Send Emails">
+        </form>
+    </div>
+
+    <script>
+        document.getElementById('emailForm').onsubmit = function(e) {
+            e.preventDefault(); // Prevent form submission
+
+            var formData = new FormData(this);
+            var successCountElement = document.getElementById('successCount');
+            var failureCountElement = document.getElementById('failureCount');
+            var messageElement = document.getElementById('message');
+
+            successCountElement.textContent = "Emails sent: 0"; // Reset success count
+            failureCountElement.textContent = "Emails failed: 0"; // Reset failure count
+            messageElement.style.display = "none"; // Hide previous messages
+            
+            fetch('/send_emails', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                // Display success message and counts
+                messageElement.textContent = `Successfully sent ${data.success_count} emails, failed to send ${data.failure_count} emails!`;
+                messageElement.style.display = "block";
+                successCountElement.textContent = `Emails sent: ${data.success_count}`;
+                failureCountElement.textContent = `Emails failed: ${data.failure_count}`;
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                messageElement.textContent = 'An error occurred while sending emails.';
+                messageElement.style.display = "block";
+            });
+        };
+    </script>
+</body>
+</html>
